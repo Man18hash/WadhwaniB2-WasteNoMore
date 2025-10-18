@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+use App\Models\WasteEntry;
+use App\Models\ProcessBatch;
+use App\Models\SalesRecord;
+use Carbon\Carbon;
 use App\Http\Controllers\WasteEntryController;
 use App\Http\Controllers\AnaerobicDigestionController;
 use App\Http\Controllers\BSFLarvaeController;

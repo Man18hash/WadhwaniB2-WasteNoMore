@@ -12,7 +12,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-blue-100 text-sm font-medium">Total Waste This Week</p>
-                    <p class="text-3xl font-bold">{{ number_format($weeklyStats->total_waste_kg ?? 0, 0) }} kg</p>
+                    <p class="text-3xl font-bold">{{ number_format($totalWasteThisWeek ?? 0, 0) }} kg</p>
                 </div>
                 <div class="bg-blue-400 rounded-full p-3">
                     <i class="fas fa-trash-alt text-2xl"></i>
@@ -24,7 +24,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-green-100 text-sm font-medium">Biogas Generated</p>
-                    <p class="text-3xl font-bold">{{ number_format($weeklyStats->biogas_generated_m3 ?? 0, 0) }} m³</p>
+                    <p class="text-3xl font-bold">{{ number_format($biogasGenerated ?? 0, 0) }} m³</p>
                 </div>
                 <div class="bg-green-400 rounded-full p-3">
                     <i class="fas fa-fire text-2xl"></i>
@@ -36,7 +36,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-purple-100 text-sm font-medium">Revenue This Month</p>
-                    <p class="text-3xl font-bold">₱{{ number_format($monthlySales->sum('total_amount') ?? 0, 0) }}</p>
+                    <p class="text-3xl font-bold">₱{{ number_format($revenueThisMonth ?? 0, 0) }}</p>
                 </div>
                 <div class="bg-purple-400 rounded-full p-3">
                     <i class="fas fa-dollar-sign text-2xl"></i>
@@ -48,7 +48,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-orange-100 text-sm font-medium">CO₂ Reduced</p>
-                    <p class="text-3xl font-bold">{{ number_format($monthlyEnvironmentalImpact->co2_emissions_reduced_kg ?? 0, 0) }} kg</p>
+                    <p class="text-3xl font-bold">{{ number_format($co2Reduced ?? 0, 0) }} kg</p>
                 </div>
                 <div class="bg-orange-400 rounded-full p-3">
                     <i class="fas fa-leaf text-2xl"></i>
@@ -66,7 +66,7 @@
                     <i class="fas fa-biohazard text-blue-600 text-xl"></i>
                     <span class="text-sm font-medium text-blue-800">Anaerobic</span>
                 </div>
-                <p class="text-2xl font-bold text-blue-900">{{ $activeBatches->where('process_type', 'anaerobic_digestion')->count() }}</p>
+                <p class="text-2xl font-bold text-blue-900">{{ $activeBatchesCount['anaerobic'] ?? 0 }}</p>
                 <p class="text-xs text-blue-600">Active Batches</p>
             </div>
             
@@ -75,7 +75,7 @@
                     <i class="fas fa-bug text-green-600 text-xl"></i>
                     <span class="text-sm font-medium text-green-800">BSF Larvae</span>
                 </div>
-                <p class="text-2xl font-bold text-green-900">{{ $activeBatches->where('process_type', 'bsf_larvae')->count() }}</p>
+                <p class="text-2xl font-bold text-green-900">{{ $activeBatchesCount['bsf_larvae'] ?? 0 }}</p>
                 <p class="text-xs text-green-600">Active Cycles</p>
             </div>
             
@@ -84,7 +84,7 @@
                     <i class="fas fa-atom text-purple-600 text-xl"></i>
                     <span class="text-sm font-medium text-purple-800">Activated Carbon</span>
                 </div>
-                <p class="text-2xl font-bold text-purple-900">{{ $activeBatches->where('process_type', 'activated_carbon')->count() }}</p>
+                <p class="text-2xl font-bold text-purple-900">{{ $activeBatchesCount['activated_carbon'] ?? 0 }}</p>
                 <p class="text-xs text-purple-600">Active Batches</p>
             </div>
             
@@ -93,7 +93,7 @@
                     <i class="fas fa-file-alt text-yellow-600 text-xl"></i>
                     <span class="text-sm font-medium text-yellow-800">Paper & Packaging</span>
                 </div>
-                <p class="text-2xl font-bold text-yellow-900">{{ $activeBatches->where('process_type', 'paper_packaging')->count() }}</p>
+                <p class="text-2xl font-bold text-yellow-900">{{ $activeBatchesCount['paper_packaging'] ?? 0 }}</p>
                 <p class="text-xs text-yellow-600">Active Batches</p>
             </div>
             
@@ -102,7 +102,7 @@
                     <i class="fas fa-fire text-red-600 text-xl"></i>
                     <span class="text-sm font-medium text-red-800">Pyrolysis</span>
                 </div>
-                <p class="text-2xl font-bold text-red-900">{{ $activeBatches->where('process_type', 'pyrolysis')->count() }}</p>
+                <p class="text-2xl font-bold text-red-900">{{ $activeBatchesCount['pyrolysis'] ?? 0 }}</p>
                 <p class="text-xs text-red-600">Active Batches</p>
             </div>
         </div>

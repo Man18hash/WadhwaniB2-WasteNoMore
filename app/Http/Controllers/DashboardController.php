@@ -22,21 +22,26 @@ class DashboardController extends Controller
         $currentYear = Carbon::now()->year;
         $currentWeekNumber = Carbon::now()->week;
         
-        // Summary statistics for this week
-        $weeklyStats = WeeklyStatistic::where('year', $currentYear)
-            ->where('week_number', $currentWeekNumber)
-            ->first();
-            
+        // Get the most recent weekly stats (or calculate from data)
+        $weeklyStats = WeeklyStatistic::latest('week_number')->first();
+        
         // If no weekly stats exist, calculate from raw data
         if (!$weeklyStats) {
             $weeklyStats = $this->calculateWeeklyStats($currentWeek, $currentWeek->copy()->endOfWeek());
         }
         
-        // Recent waste entries (last 7 days)
+        // Recent waste entries (last 7 days or most recent if no current week data)
         $recentWasteEntries = WasteEntry::where('entry_date', '>=', $currentWeek)
             ->orderBy('entry_date', 'desc')
             ->limit(5)
             ->get();
+            
+        // If no current week data, get most recent entries
+        if ($recentWasteEntries->isEmpty()) {
+            $recentWasteEntries = WasteEntry::orderBy('entry_date', 'desc')
+                ->limit(5)
+                ->get();
+        }
             
         // Active process batches
         $activeBatches = ProcessBatch::whereIn('status', ['pending', 'processing'])
@@ -66,12 +71,17 @@ class DashboardController extends Controller
             ->whereYear('sale_date', Carbon::now()->year)
             ->get();
             
-        // Environmental impact this month
+        // Environmental impact this month or most recent
         $monthlyEnvironmentalImpact = EnvironmentalImpact::whereMonth('report_date', Carbon::now()->month)
             ->whereYear('report_date', Carbon::now()->year)
             ->first();
             
-        // Chart data for waste distribution
+        // If no current month data, get most recent
+        if (!$monthlyEnvironmentalImpact) {
+            $monthlyEnvironmentalImpact = EnvironmentalImpact::latest('report_date')->first();
+        }
+            
+        // Chart data for waste distribution (this week or recent data)
         $wasteDistribution = [
             'vegetable' => WasteEntry::where('waste_type', 'vegetable')
                 ->where('entry_date', '>=', $currentWeek)
@@ -84,10 +94,24 @@ class DashboardController extends Controller
                 ->sum('weight_kg') ?: 0
         ];
         
-        // Weekly trends data (last 4 weeks) - create sample data if none exists
-        $weeklyTrends = WeeklyStatistic::where('year', $currentYear)
-            ->where('week_number', '>=', $currentWeekNumber - 3)
-            ->orderBy('week_number')
+        // If no current week data, use recent data
+        if (array_sum($wasteDistribution) == 0) {
+            $wasteDistribution = [
+                'vegetable' => WasteEntry::where('waste_type', 'vegetable')
+                    ->where('entry_date', '>=', Carbon::now()->subDays(7))
+                    ->sum('weight_kg') ?: 0,
+                'fruit' => WasteEntry::where('waste_type', 'fruit')
+                    ->where('entry_date', '>=', Carbon::now()->subDays(7))
+                    ->sum('weight_kg') ?: 0,
+                'plastic' => WasteEntry::where('waste_type', 'plastic')
+                    ->where('entry_date', '>=', Carbon::now()->subDays(7))
+                    ->sum('weight_kg') ?: 0
+            ];
+        }
+        
+        // Weekly trends data (last 4 weeks)
+        $weeklyTrends = WeeklyStatistic::orderBy('week_number', 'desc')
+            ->limit(4)
             ->get();
             
         // If no weekly trends data exists, create sample data for demonstration
@@ -102,7 +126,7 @@ class DashboardController extends Controller
             }
         }
             
-        // Output production data
+        // Output production data (this week or recent data)
         $outputProduction = [
             'biogas' => BatchOutput::where('output_type', 'biogas')
                 ->where('is_expected', false)
@@ -126,6 +150,52 @@ class DashboardController extends Controller
                 ->sum('quantity') ?: 0
         ];
         
+        // If no current week data, use recent data
+        if (array_sum($outputProduction) == 0) {
+            $outputProduction = [
+                'biogas' => BatchOutput::where('output_type', 'biogas')
+                    ->where('is_expected', false)
+                    ->where('output_date', '>=', Carbon::now()->subDays(7))
+                    ->sum('quantity') ?: 0,
+                'digestate' => BatchOutput::where('output_type', 'digestate')
+                    ->where('is_expected', false)
+                    ->where('output_date', '>=', Carbon::now()->subDays(7))
+                    ->sum('quantity') ?: 0,
+                'larvae' => BatchOutput::where('output_type', 'larvae')
+                    ->where('is_expected', false)
+                    ->where('output_date', '>=', Carbon::now()->subDays(7))
+                    ->sum('quantity') ?: 0,
+                'pyrolysis_oil' => BatchOutput::where('output_type', 'pyrolysis_oil')
+                    ->where('is_expected', false)
+                    ->where('output_date', '>=', Carbon::now()->subDays(7))
+                    ->sum('quantity') ?: 0,
+                'activated_carbon' => BatchOutput::where('output_type', 'activated_carbon')
+                    ->where('is_expected', false)
+                    ->where('output_date', '>=', Carbon::now()->subDays(7))
+                    ->sum('quantity') ?: 0
+            ];
+        }
+        
+        // Calculate key metrics for dashboard cards
+        $totalWasteThisWeek = array_sum($wasteDistribution);
+        $biogasGenerated = $outputProduction['biogas'];
+        $revenueThisMonth = $monthlySales->sum('total_amount');
+        $co2Reduced = $monthlyEnvironmentalImpact ? $monthlyEnvironmentalImpact->co2_emissions_reduced_kg : 0;
+        
+        // Active batches count by process type
+        $activeBatchesCount = [
+            'anaerobic' => ProcessBatch::where('process_type', 'anaerobic_digestion')
+                ->whereIn('status', ['pending', 'processing'])->count(),
+            'bsf_larvae' => ProcessBatch::where('process_type', 'bsf_larvae')
+                ->whereIn('status', ['pending', 'processing'])->count(),
+            'activated_carbon' => ProcessBatch::where('process_type', 'activated_carbon')
+                ->whereIn('status', ['pending', 'processing'])->count(),
+            'paper_packaging' => ProcessBatch::where('process_type', 'paper_packaging')
+                ->whereIn('status', ['pending', 'processing'])->count(),
+            'pyrolysis' => ProcessBatch::where('process_type', 'pyrolysis')
+                ->whereIn('status', ['pending', 'processing'])->count(),
+        ];
+        
         return view('dashboard', compact(
             'weeklyStats',
             'recentWasteEntries',
@@ -138,7 +208,12 @@ class DashboardController extends Controller
             'wasteDistribution',
             'weeklyTrends',
             'outputProduction',
-            'currentWeekNumber'
+            'currentWeekNumber',
+            'totalWasteThisWeek',
+            'biogasGenerated',
+            'revenueThisMonth',
+            'co2Reduced',
+            'activeBatchesCount'
         ));
     }
     
@@ -155,33 +230,35 @@ class DashboardController extends Controller
         // Calculate outputs from completed batches
         $completedBatches = ProcessBatch::where('status', 'completed')
             ->whereBetween('actual_completion_date', [$startDate, $endDate])
-            ->with('batchOutputs')
             ->get();
             
-        $stats->biogas_generated_m3 = $completedBatches->flatMap->batchOutputs
+        // Get batch IDs for querying outputs
+        $batchIds = $completedBatches->pluck('id');
+        
+        $stats->biogas_generated_m3 = BatchOutput::whereIn('batch_id', $batchIds)
             ->where('output_type', 'biogas')
             ->where('is_expected', false)
-            ->sum('quantity');
+            ->sum('quantity') ?: 0;
             
-        $stats->digestate_produced_kg = $completedBatches->flatMap->batchOutputs
+        $stats->digestate_produced_kg = BatchOutput::whereIn('batch_id', $batchIds)
             ->where('output_type', 'digestate')
             ->where('is_expected', false)
-            ->sum('quantity');
+            ->sum('quantity') ?: 0;
             
-        $stats->larvae_produced_kg = $completedBatches->flatMap->batchOutputs
+        $stats->larvae_produced_kg = BatchOutput::whereIn('batch_id', $batchIds)
             ->where('output_type', 'larvae')
             ->where('is_expected', false)
-            ->sum('quantity');
+            ->sum('quantity') ?: 0;
             
-        $stats->pyrolysis_oil_liters = $completedBatches->flatMap->batchOutputs
+        $stats->pyrolysis_oil_liters = BatchOutput::whereIn('batch_id', $batchIds)
             ->where('output_type', 'pyrolysis_oil')
             ->where('is_expected', false)
-            ->sum('quantity');
+            ->sum('quantity') ?: 0;
             
-        $stats->activated_carbon_kg = $completedBatches->flatMap->batchOutputs
+        $stats->activated_carbon_kg = BatchOutput::whereIn('batch_id', $batchIds)
             ->where('output_type', 'activated_carbon')
             ->where('is_expected', false)
-            ->sum('quantity');
+            ->sum('quantity') ?: 0;
             
         return $stats;
     }
