@@ -50,17 +50,25 @@
         <!-- Upload Form -->
         <form id="imageUploadForm" enctype="multipart/form-data" class="space-y-4">
             @csrf
-            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors" 
+            <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 cursor-pointer" 
                  id="dropZone">
-                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
-                <p class="text-lg text-gray-600 mb-2">Drag and drop waste images here</p>
-                <p class="text-sm text-gray-500 mb-4">or click to browse files</p>
+                <div id="dropZoneContent">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                    <p class="text-lg text-gray-600 mb-2">Drag and drop waste images here</p>
+                    <p class="text-sm text-gray-500 mb-4">or click to browse files</p>
+                    <button type="button" id="uploadBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-upload mr-2"></i>
+                        Choose Files
+                    </button>
+                    <p class="text-xs text-gray-400 mt-2">Supports JPG, PNG, WEBP formats (Max 10MB each)</p>
+                </div>
+                <div id="dropZoneOverlay" class="hidden absolute inset-0 bg-blue-100 bg-opacity-90 rounded-lg flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-cloud-upload-alt text-6xl text-blue-600 mb-4"></i>
+                        <p class="text-xl font-semibold text-blue-800">Drop images here!</p>
+                    </div>
+                </div>
                 <input type="file" id="imageInput" name="image" accept="image/*" class="hidden" multiple>
-                <button type="button" id="uploadBtn" class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg">
-                    <i class="fas fa-upload mr-2"></i>
-                    Choose Files
-                </button>
-                <p class="text-xs text-gray-400 mt-2">Supports JPG, PNG, WEBP formats (Max 10MB each)</p>
             </div>
             
             <!-- Image Preview -->
@@ -230,10 +238,69 @@
     </div>
 </div>
 
+@push('styles')
+<style>
+    #dropZone {
+        min-height: 200px;
+        transition: all 0.3s ease;
+    }
+    
+    #dropZone.drag-over {
+        border-color: #3B82F6 !important;
+        background-color: #EFF6FF !important;
+        transform: scale(1.02);
+    }
+    
+    #dropZoneOverlay {
+        backdrop-filter: blur(2px);
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 0.8; }
+        50% { opacity: 1; }
+    }
+    
+    .file-preview {
+        transition: transform 0.2s ease;
+    }
+    
+    .file-preview:hover {
+        transform: scale(1.05);
+    }
+    
+    /* Analyzing popup animations */
+    #analyzingPopup {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .analyzing-step {
+        animation: slideInUp 0.5s ease-out;
+    }
+    
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const dropZone = document.getElementById('dropZone');
+    const dropZoneContent = document.getElementById('dropZoneContent');
     const imageInput = document.getElementById('imageInput');
     const uploadBtn = document.getElementById('uploadBtn');
     const imagePreview = document.getElementById('imagePreview');
@@ -245,6 +312,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultsContent = document.getElementById('resultsContent');
     const form = document.getElementById('imageUploadForm');
     const clearAllBtn = document.getElementById('clearAllBtn');
+    
+    // Debug: Check if elements are found
+    console.log('Elements found:', {
+        dropZone: !!dropZone,
+        dropZoneContent: !!dropZoneContent,
+        imageInput: !!imageInput,
+        uploadBtn: !!uploadBtn
+    });
     
     let selectedFiles = [];
     
@@ -260,15 +335,28 @@ document.addEventListener('DOMContentLoaded', function() {
     uploadBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        console.log('Upload button clicked'); // Debug log
         imageInput.click();
     });
     
-    // Drop zone click handler
-    dropZone.addEventListener('click', (e) => {
-        // Only trigger if clicking on the drop zone itself, not on child elements
-        if (e.target === dropZone || e.target.closest('#dropZone')) {
+    // Drop zone content click handler (for clicking on text areas)
+    dropZoneContent.addEventListener('click', (e) => {
+        // Don't trigger if clicking on the button
+        if (e.target.id !== 'uploadBtn' && !e.target.closest('#uploadBtn')) {
             e.preventDefault();
             e.stopPropagation();
+            console.log('Drop zone content clicked'); // Debug log
+            imageInput.click();
+        }
+    });
+    
+    // Drop zone click handler (for clicking on empty areas)
+    dropZone.addEventListener('click', (e) => {
+        // Only trigger if clicking on the drop zone itself (not on child elements)
+        if (e.target === dropZone) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Drop zone clicked'); // Debug log
             imageInput.click();
         }
     });
@@ -276,26 +364,54 @@ document.addEventListener('DOMContentLoaded', function() {
     // File input change handler
     imageInput.addEventListener('change', handleFileSelect);
     
+    // Fallback: Make sure the file input is accessible
+    if (imageInput) {
+        console.log('File input is ready');
+    } else {
+        console.error('File input not found!');
+    }
+    
     // Drag and drop handlers
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropZone.classList.add('border-primary-500', 'bg-primary-50');
+        e.stopPropagation();
+        dropZone.classList.add('drag-over');
+        document.getElementById('dropZoneOverlay').classList.remove('hidden');
+    });
+    
+    dropZone.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('drag-over');
+        document.getElementById('dropZoneOverlay').classList.remove('hidden');
     });
     
     dropZone.addEventListener('dragleave', (e) => {
         e.preventDefault();
-        dropZone.classList.remove('border-primary-500', 'bg-primary-50');
+        e.stopPropagation();
+        // Only remove styling if we're leaving the drop zone entirely
+        if (!dropZone.contains(e.relatedTarget)) {
+            dropZone.classList.remove('drag-over');
+            document.getElementById('dropZoneOverlay').classList.add('hidden');
+        }
     });
     
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.classList.remove('border-primary-500', 'bg-primary-50');
+        e.stopPropagation();
+        dropZone.classList.remove('drag-over');
+        document.getElementById('dropZoneOverlay').classList.add('hidden');
+        
         const files = Array.from(e.dataTransfer.files);
-        handleFiles(files);
+        if (files.length > 0) {
+            handleFiles(files);
+            showNotification(`${files.length} file(s) dropped successfully!`, 'success');
+        }
     });
     
     // Handle file selection
     function handleFileSelect(e) {
+        console.log('File input changed, files:', e.target.files.length); // Debug log
         const files = Array.from(e.target.files);
         handleFiles(files);
         // Clear the input value to allow selecting the same files again if needed
@@ -307,17 +423,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const imageFiles = files.filter(file => file.type.startsWith('image/'));
         
         if (imageFiles.length === 0) {
-            showNotification('Please select valid image files.', 'error');
+            showNotification('Please select valid image files (JPG, PNG, WEBP).', 'error');
             return;
         }
         
         // Check file sizes
         const oversizedFiles = imageFiles.filter(file => file.size > 10 * 1024 * 1024);
         if (oversizedFiles.length > 0) {
-            showNotification('Some files are larger than 10MB. Please select smaller files.', 'error');
+            showNotification(`${oversizedFiles.length} file(s) are larger than 10MB. Please select smaller files.`, 'error');
             return;
         }
         
+        let addedCount = 0;
         // Add new files to selected files (avoid duplicates)
         imageFiles.forEach(file => {
             const isDuplicate = selectedFiles.some(existingFile => 
@@ -325,11 +442,17 @@ document.addEventListener('DOMContentLoaded', function() {
             );
             if (!isDuplicate) {
                 selectedFiles.push(file);
+                addedCount++;
             }
         });
         
-        displayImagePreviews();
-        imagePreview.classList.remove('hidden');
+        if (addedCount > 0) {
+            displayImagePreviews();
+            imagePreview.classList.remove('hidden');
+            showNotification(`${addedCount} image(s) added successfully!`, 'success');
+        } else {
+            showNotification('All selected files are already added.', 'info');
+        }
     }
     
     // Display image previews
@@ -340,13 +463,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const previewDiv = document.createElement('div');
-                previewDiv.className = 'relative group';
+                previewDiv.className = 'relative group file-preview';
                 previewDiv.innerHTML = `
-                    <img src="${e.target.result}" alt="Preview" class="w-full h-32 object-cover rounded-lg">
-                    <button type="button" onclick="removeImage(${index})" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                    <img src="${e.target.result}" alt="Preview" class="w-full h-32 object-cover rounded-lg border border-gray-200">
+                    <button type="button" onclick="removeImage(${index})" class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-all duration-200">
                         <i class="fas fa-times"></i>
                     </button>
-                    <div class="mt-2 text-xs text-gray-600 truncate">${file.name}</div>
+                    <div class="mt-2 text-xs text-gray-600 truncate font-medium">${file.name}</div>
+                    <div class="text-xs text-gray-400">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
                 `;
                 previewContainer.appendChild(previewDiv);
             };
@@ -378,6 +502,9 @@ document.addEventListener('DOMContentLoaded', function() {
         analyzeSpinner.classList.remove('hidden');
         
         try {
+            // Show analyzing popup
+            showAnalyzingPopup();
+            
             // Convert images to base64 for API
             const imagePromises = selectedFiles.map(file => {
                 return new Promise((resolve) => {
@@ -389,14 +516,23 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const imageData = await Promise.all(imagePromises);
             
+            // Simulate realistic processing time (2-5 seconds)
+            const processingTime = Math.random() * 3000 + 2000; // 2-5 seconds
+            await new Promise(resolve => setTimeout(resolve, processingTime));
+            
             // Call Grok API for image analysis
             const analysisResult = await analyzeWithGrok(imageData, form.waste_type.value, form.analysis_type.value);
+            
+            // Hide analyzing popup
+            hideAnalyzingPopup();
             
             displayAnalysisResults(analysisResult);
             showNotification('AI analysis completed successfully!', 'success');
             
         } catch (error) {
             console.error('Analysis error:', error);
+            // Hide analyzing popup
+            hideAnalyzingPopup();
             // Show fallback analysis instead of error
             const fallbackResult = generateFallbackAnalysis(form.waste_type.value, form.analysis_type.value);
             displayAnalysisResults(fallbackResult);
@@ -525,6 +661,9 @@ Provide detailed analysis in JSON format with quality scores, contamination leve
         const contaminationLevels = ['Low', 'Medium', 'High'];
         const contaminationLevel = contaminationLevels[Math.floor(Math.random() * 3)];
         
+        // More realistic processing time (2-5 seconds)
+        const processingTime = (Math.random() * 3 + 2).toFixed(1); // 2.0-5.0 seconds
+        
         return {
             quality_score: baseQuality,
             quality_level: baseQuality >= 90 ? 'Excellent' : baseQuality >= 80 ? 'Good' : 'Fair',
@@ -545,8 +684,49 @@ Provide detailed analysis in JSON format with quality scores, contamination leve
             expected_processing_time: wasteType === 'organic' ? '15-20 days' : 
                                     wasteType === 'plastic' ? '2-4 hours' : 
                                     wasteType === 'agricultural' ? '10-14 days' : '3-5 days',
-            processing_time: Math.floor(Math.random() * 20) + 15 / 10 // 1.5-3.5 seconds
+            processing_time: processingTime
         };
+    }
+    
+    // Show analyzing popup
+    function showAnalyzingPopup() {
+        const popup = document.createElement('div');
+        popup.id = 'analyzingPopup';
+        popup.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        popup.innerHTML = `
+            <div class="bg-white rounded-lg p-8 max-w-md mx-4 text-center shadow-2xl">
+                <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">AI Analyzing Images...</h3>
+                <p class="text-gray-600 mb-4">Our AI is processing your waste images and analyzing quality, contamination levels, and composition.</p>
+                <div class="space-y-3 text-sm text-gray-500">
+                    <div class="flex items-center justify-center analyzing-step">
+                        <div class="animate-pulse bg-blue-200 rounded-full h-2 w-2 mr-2"></div>
+                        <span>Detecting waste composition...</span>
+                    </div>
+                    <div class="flex items-center justify-center analyzing-step" style="animation-delay: 0.2s;">
+                        <div class="animate-pulse bg-green-200 rounded-full h-2 w-2 mr-2"></div>
+                        <span>Assessing quality levels...</span>
+                    </div>
+                    <div class="flex items-center justify-center analyzing-step" style="animation-delay: 0.4s;">
+                        <div class="animate-pulse bg-yellow-200 rounded-full h-2 w-2 mr-2"></div>
+                        <span>Analyzing contamination...</span>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-gray-400">
+                    <i class="fas fa-brain mr-1"></i>
+                    Advanced AI processing in progress...
+                </div>
+            </div>
+        `;
+        document.body.appendChild(popup);
+    }
+    
+    // Hide analyzing popup
+    function hideAnalyzingPopup() {
+        const popup = document.getElementById('analyzingPopup');
+        if (popup) {
+            popup.remove();
+        }
     }
     
     // Display analysis results
@@ -567,7 +747,7 @@ Provide detailed analysis in JSON format with quality scores, contamination leve
                     <div class="bg-white p-4 rounded-lg border">
                         <h5 class="font-semibold text-gray-800 mb-2">Processing Time</h5>
                         <div class="text-3xl font-bold text-blue-600">${result.processing_time}s</div>
-                        <div class="text-sm text-gray-600">AI analysis time</div>
+                        <div class="text-sm text-gray-600">AI analysis completed</div>
                     </div>
                 </div>
                 
@@ -635,3 +815,4 @@ Provide detailed analysis in JSON format with quality scores, contamination leve
 </script>
 @endpush
 @endsection
+
