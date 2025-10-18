@@ -17,18 +17,23 @@
                     <select name="product_type" id="product_type" 
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 @error('product_type') border-red-500 @enderror" required>
                         <option value="">Select product type</option>
-                        <option value="biogas" {{ old('product_type', $sale->product_type) == 'biogas' ? 'selected' : '' }}>Biogas</option>
-                        <option value="digestate" {{ old('product_type', $sale->product_type) == 'digestate' ? 'selected' : '' }}>Digestate</option>
-                        <option value="larvae" {{ old('product_type', $sale->product_type) == 'larvae' ? 'selected' : '' }}>BSF Larvae</option>
-                        <option value="frass" {{ old('product_type', $sale->product_type) == 'frass' ? 'selected' : '' }}>Frass (Fertilizer)</option>
-                        <option value="activated_carbon" {{ old('product_type', $sale->product_type) == 'activated_carbon' ? 'selected' : '' }}>Activated Carbon</option>
-                        <option value="charcoal" {{ old('product_type', $sale->product_type) == 'charcoal' ? 'selected' : '' }}>Charcoal</option>
-                        <option value="pyrolysis_oil" {{ old('product_type', $sale->product_type) == 'pyrolysis_oil' ? 'selected' : '' }}>Pyrolysis Oil</option>
-                        <option value="syngas" {{ old('product_type', $sale->product_type) == 'syngas' ? 'selected' : '' }}>Syngas</option>
-                        <option value="paper_sheets" {{ old('product_type', $sale->product_type) == 'paper_sheets' ? 'selected' : '' }}>Paper Sheets</option>
-                        <option value="packaging_boxes" {{ old('product_type', $sale->product_type) == 'packaging_boxes' ? 'selected' : '' }}>Packaging Boxes</option>
-                        <option value="paper_bags" {{ old('product_type', $sale->product_type) == 'paper_bags' ? 'selected' : '' }}>Paper Bags</option>
-                        <option value="cardboard" {{ old('product_type', $sale->product_type) == 'cardboard' ? 'selected' : '' }}>Cardboard</option>
+                        @foreach($inventory as $item)
+                            @php
+                                $currentStock = $item->product_type === $sale->product_type 
+                                    ? $item->current_stock + $sale->quantity 
+                                    : $item->current_stock;
+                            @endphp
+                            @if($currentStock > 0)
+                                <option value="{{ $item->product_type }}" 
+                                        data-stock="{{ $currentStock }}" 
+                                        data-unit="{{ $item->unit }}"
+                                        data-original-quantity="{{ $sale->product_type === $item->product_type ? $sale->quantity : 0 }}"
+                                        {{ old('product_type', $sale->product_type) == $item->product_type ? 'selected' : '' }}>
+                                    {{ ucfirst(str_replace('_', ' ', $item->product_type)) }} 
+                                    (Available: {{ $currentStock }} {{ $item->unit }})
+                                </option>
+                            @endif
+                        @endforeach
                     </select>
                     @error('product_type')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -138,12 +143,110 @@ function calculateTotal() {
     document.getElementById('total-amount').textContent = '₱' + total.toFixed(2);
 }
 
+// Update unit field and validate quantity when product type changes
+function updateUnitAndValidate() {
+    const productSelect = document.getElementById('product_type');
+    const unitSelect = document.getElementById('unit');
+    const quantityInput = document.getElementById('quantity');
+    const selectedOption = productSelect.options[productSelect.selectedIndex];
+    
+    if (selectedOption.value) {
+        const stock = parseFloat(selectedOption.dataset.stock);
+        const unit = selectedOption.dataset.unit;
+        const originalQuantity = parseFloat(selectedOption.dataset.originalQuantity) || 0;
+        
+        // Update unit field
+        unitSelect.value = unit;
+        
+        // Update quantity max attribute (considering original quantity is already "returned" to stock)
+        quantityInput.max = stock;
+        quantityInput.placeholder = `Max: ${stock} ${unit}`;
+        
+        // Show stock info
+        showStockInfo(stock, unit, originalQuantity);
+    } else {
+        // Reset when no product selected
+        unitSelect.value = '';
+        quantityInput.max = '';
+        quantityInput.placeholder = '0.00';
+        hideStockInfo();
+    }
+}
+
+// Show stock information
+function showStockInfo(stock, unit, originalQuantity) {
+    let stockInfo = document.getElementById('stock-info');
+    if (!stockInfo) {
+        stockInfo = document.createElement('div');
+        stockInfo.id = 'stock-info';
+        stockInfo.className = 'mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800';
+        document.getElementById('product_type').parentNode.appendChild(stockInfo);
+    }
+    
+    let message = `<i class="fas fa-info-circle mr-1"></i>Available stock: ${stock} ${unit}`;
+    if (originalQuantity > 0) {
+        message += ` (includes ${originalQuantity} ${unit} from this sale)`;
+    }
+    stockInfo.innerHTML = message;
+}
+
+// Hide stock information
+function hideStockInfo() {
+    const stockInfo = document.getElementById('stock-info');
+    if (stockInfo) {
+        stockInfo.remove();
+    }
+}
+
+// Validate quantity against available stock
+function validateQuantity() {
+    const productSelect = document.getElementById('product_type');
+    const quantityInput = document.getElementById('quantity');
+    const selectedOption = productSelect.options[productSelect.selectedIndex];
+    
+    if (selectedOption.value) {
+        const stock = parseFloat(selectedOption.dataset.stock);
+        const quantity = parseFloat(quantityInput.value);
+        
+        if (quantity > stock) {
+            quantityInput.setCustomValidity(`Cannot exceed available stock of ${stock}`);
+            quantityInput.classList.add('border-red-500');
+            
+            // Show error message
+            let errorMsg = document.getElementById('quantity-error');
+            if (!errorMsg) {
+                errorMsg = document.createElement('p');
+                errorMsg.id = 'quantity-error';
+                errorMsg.className = 'mt-1 text-sm text-red-600';
+                quantityInput.parentNode.appendChild(errorMsg);
+            }
+            errorMsg.textContent = `Insufficient stock! Available: ${stock}`;
+        } else {
+            quantityInput.setCustomValidity('');
+            quantityInput.classList.remove('border-red-500');
+            
+            // Remove error message
+            const errorMsg = document.getElementById('quantity-error');
+            if (errorMsg) {
+                errorMsg.remove();
+            }
+        }
+    }
+}
+
 // Add event listeners
-document.getElementById('quantity').addEventListener('input', calculateTotal);
+document.getElementById('product_type').addEventListener('change', updateUnitAndValidate);
+document.getElementById('quantity').addEventListener('input', function() {
+    validateQuantity();
+    calculateTotal();
+});
 document.getElementById('price_per_unit').addEventListener('input', calculateTotal);
 
-// Calculate on page load
-calculateTotal();
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateUnitAndValidate();
+    calculateTotal();
+});
 </script>
 @endpush
 @endsection
