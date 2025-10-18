@@ -1,61 +1,239 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# WASTE NO MORE - NVAT Waste Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A comprehensive Laravel web application for the Nueva Vizcaya Agricultural Terminal (NVAT) waste management system. This system tracks agricultural and plastic waste valorization through various processing technologies with AI-powered analytics.
 
-## About Laravel
+## 🚀 Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### 🤖 AI Analytics
+- **Yield Prediction**: Machine learning models predict biogas, digestate, and larvae production based on waste characteristics
+- **Image Recognition**: AI-powered image analysis for waste quality and contamination assessment using Grok API
+- **Batch Scheduling**: AI-optimized processing schedules based on waste composition, weather, and demand patterns
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 📊 Dashboard
+- Real-time statistics and KPIs
+- Interactive charts and graphs (Chart.js)
+- Weekly trends and output production tracking
+- Process stream overviews
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🔄 Processing Streams
+- **Anaerobic Digestion**: Organic waste to biogas and digestate
+- **BSF Larvae Cultivation**: Black Soldier Fly larvae processing
+- **Activated Carbon Production**: Fruit seeds and hard waste conversion
+- **Paper & Packaging Production**: Agricultural waste to packaging materials
+- **Pyrolysis Operations**: Plastic waste to pyrolysis oil and syngas
 
-## Learning Laravel
+### 📈 Management Features
+- **Inventory Management**: Stock levels and adjustments
+- **Sales & Revenue**: Sales tracking with Excel export
+- **Energy Monitoring**: Energy consumption and cost tracking
+- **Environmental Impact**: CO2 reduction and environmental metrics
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 📝 Data Entry
+- **Waste Entries**: Comprehensive waste input tracking
+- **Form Validation**: Server-side and client-side validation
+- **Export Functionality**: Excel/CSV export capabilities
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 🛠️ Technology Stack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Backend**: Laravel 11
+- **Frontend**: Blade Templates, Tailwind CSS
+- **Charts**: Chart.js
+- **Database**: MySQL/SQLite
+- **AI Integration**: Grok API
+- **Icons**: Font Awesome
 
-## Laravel Sponsors
+## 📋 Requirements
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- PHP 8.2+
+- Composer
+- Node.js & NPM
+- MySQL/SQLite
+- Laravel 11
 
-### Premium Partners
+## 🚀 Installation
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Man18hash/WadhwaniB2-WasteNoMore.git
+   cd WadhwaniB2-WasteNoMore
+   ```
 
-## Contributing
+2. **Install dependencies**
+   ```bash
+   composer install
+   npm install
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+3. **Environment setup**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-## Code of Conduct
+4. **Database setup**
+   ```bash
+   php artisan migrate
+   php artisan db:seed --class=WasteManagementSeeder
+   php artisan db:seed --class=WeeklyStatsSeeder
+   php artisan db:seed --class=BatchOutputSeeder
+   php artisan db:seed --class=AIHistoricalDataSeeder
+   ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+5. **Build assets**
+   ```bash
+   npm run build
+   ```
 
-## Security Vulnerabilities
+6. **Start the server**
+   ```bash
+   php artisan serve
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 🗄️ Database Structure
 
-## License
+### Core Tables
+- `waste_entries` - Main waste input data
+- `process_batches` - Processing batch tracking
+- `batch_outputs` - Expected and actual outputs
+- `weekly_statistics` - Weekly aggregated data
+- `output_inventory` - Product inventory
+- `sales_records` - Sales tracking
+- `energy_consumption` - Energy usage monitoring
+- `environmental_impact` - Environmental metrics
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Relationships
+- ProcessBatch hasMany BatchOutput
+- WasteEntry belongsTo ProcessBatch
+- All models have proper foreign key relationships
+
+## 🎯 Key Features
+
+### AI Analytics Dashboard
+- **Yield Prediction**: Predicts output quantities with confidence levels
+- **Image Recognition**: Upload images for AI analysis of waste quality
+- **Batch Scheduling**: AI recommendations for optimal processing times
+
+### Processing Management
+- **CRUD Operations**: Complete Create, Read, Update, Delete for all entities
+- **Output Tracking**: Track expected vs actual outputs
+- **Status Management**: Pending, Processing, Completed status tracking
+
+### Data Visualization
+- **Interactive Charts**: Line charts, bar charts, pie charts
+- **Real-time Updates**: Dashboard refreshes with latest data
+- **Export Capabilities**: Excel/CSV export for all data
+
+### Form Validation
+- **Server-side Validation**: Laravel Form Request classes
+- **Client-side Validation**: JavaScript validation
+- **Custom Rules**: Business logic validation rules
+
+## 🔧 Configuration
+
+### AI Integration
+The system integrates with Grok API for image recognition. Configure your API key in the quality assessment view:
+```javascript
+const GROK_API_KEY = 'your-grok-api-key';
+```
+
+### Database Configuration
+Configure your database in `.env`:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=waste-no-more
+DB_USERNAME=your-username
+DB_PASSWORD=your-password
+```
+
+## 📱 Usage
+
+### Dashboard
+Access the main dashboard at `/dashboard` to view:
+- Weekly statistics
+- Process stream overviews
+- Recent activities
+- Quick stats
+
+### AI Analytics
+Navigate to `/ai-analytics` for:
+- Yield prediction with interactive charts
+- Image recognition for waste quality assessment
+- AI-powered batch scheduling recommendations
+
+### Data Entry
+Use the sidebar navigation to access:
+- Waste Entries (`/waste-entries`)
+- Processing Streams (Anaerobic Digestion, BSF Larvae, etc.)
+- Management (Inventory, Sales, Energy, Environmental Impact)
+
+## 🎨 Design Features
+
+- **Responsive Design**: Mobile-friendly interface
+- **Modern UI**: Clean, card-based layout
+- **Color-coded Status**: Visual indicators for different states
+- **Interactive Elements**: Hover effects and smooth transitions
+- **Gradient Themes**: Purple/blue gradient color scheme
+
+## 📊 Sample Data
+
+The system includes comprehensive sample data:
+- 11 waste entries
+- 14 process batches (12 completed)
+- 26 batch outputs
+- 4 weekly statistics records
+- 5 inventory items
+- Historical data for AI predictions
+
+## 🔒 Security Features
+
+- **CSRF Protection**: All forms protected
+- **Form Validation**: Server-side validation
+- **SQL Injection Prevention**: Eloquent ORM
+- **XSS Protection**: Blade template escaping
+
+## 🚀 Deployment
+
+1. **Production Environment**
+   ```bash
+   composer install --optimize-autoloader --no-dev
+   npm run production
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   ```
+
+2. **Web Server Configuration**
+   - Point document root to `public/` directory
+   - Configure URL rewriting for Laravel
+   - Set proper file permissions
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+This project is part of the Wadhwani Foundation competition.
+
+## 🏆 Competition Features
+
+This system was developed for the Wadhwani Foundation competition and includes:
+- **AI Integration**: Advanced machine learning capabilities
+- **Real-time Analytics**: Live data processing and visualization
+- **Comprehensive Management**: Complete waste management workflow
+- **Modern Technology**: Latest Laravel and frontend technologies
+- **Scalable Architecture**: Ready for production deployment
+
+## 📞 Support
+
+For support or questions, please contact the development team.
+
+---
+
+**WASTE NO MORE** - Transforming waste into valuable resources through technology and innovation! 🌱♻️
