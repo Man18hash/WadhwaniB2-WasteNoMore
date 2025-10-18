@@ -1,0 +1,148 @@
+<?php
+
+return [
+    'waste_entry' => [
+        'entry_date' => 'required|date|before_or_equal:today',
+        'waste_type' => 'required|in:vegetable,fruit,plastic',
+        'weight_kg' => 'required|numeric|min:0.01|max:10000',
+        'processing_technology' => 'required|in:anaerobic,bsf,activated,paper,pyrolysis',
+        'notes' => 'nullable|string|max:1000'
+    ],
+
+    'process_batch' => [
+        'batch_number' => 'required|string|max:255|unique:process_batches,batch_number',
+        'input_weight_kg' => 'required|numeric|min:0.01|max:50000',
+        'input_type' => 'required|string|max:255',
+        'start_date' => 'required|date|before_or_equal:today',
+        'expected_completion_date' => 'nullable|date|after:start_date',
+        'actual_completion_date' => 'nullable|date|after:start_date',
+        'status' => 'required|in:pending,processing,completed,cancelled',
+        'description' => 'nullable|string|max:1000'
+    ],
+
+    'batch_output' => [
+        'output_type' => 'required|string|max:255',
+        'quantity' => 'required|numeric|min:0.01|max:10000',
+        'unit' => 'required|string|max:50',
+        'is_expected' => 'boolean',
+        'output_date' => 'nullable|date|before_or_equal:today',
+        'quality_grade' => 'nullable|numeric|min:0|max:100',
+        'remarks' => 'nullable|string|max:1000'
+    ],
+
+    'sales_record' => [
+        'product_type' => 'required|string|max:255',
+        'quantity' => 'required|numeric|min:0.01|max:10000',
+        'unit' => 'required|string|max:50',
+        'price_per_unit' => 'required|numeric|min:0.01|max:100000',
+        'sale_date' => 'required|date|before_or_equal:today',
+        'customer_name' => 'nullable|string|max:255',
+        'notes' => 'nullable|string|max:1000'
+    ],
+
+    'energy_consumption' => [
+        'consumption_date' => 'required|date|before_or_equal:today',
+        'energy_source' => 'required|in:biogas,grid_electricity,pyrolysis_oil',
+        'quantity_consumed' => 'required|numeric|min:0.01|max:100000',
+        'unit' => 'required|string|max:50',
+        'used_for' => 'required|string|max:255',
+        'cost_saved' => 'nullable|numeric|min:0|max:1000000'
+    ],
+
+    'environmental_impact' => [
+        'report_date' => 'required|date|before_or_equal:today',
+        'waste_diverted_from_landfill_kg' => 'nullable|numeric|min:0|max:1000000',
+        'co2_emissions_reduced_kg' => 'nullable|numeric|min:0|max:1000000',
+        'renewable_energy_generated_kwh' => 'nullable|numeric|min:0|max:1000000',
+        'chemical_fertilizer_replaced_kg' => 'nullable|numeric|min:0|max:1000000',
+        'plastic_diverted_from_ocean_kg' => 'nullable|numeric|min:0|max:1000000',
+        'notes' => 'nullable|string|max:1000'
+    ],
+
+    'inventory_adjustment' => [
+        'product_type' => 'required|string|max:255|exists:output_inventory,product_type',
+        'adjustment_type' => 'required|in:add,subtract',
+        'quantity' => 'required|numeric|min:0.01|max:10000',
+        'reason' => 'required|string|max:255'
+    ],
+
+    'messages' => [
+        'entry_date.required' => 'Entry date is required.',
+        'entry_date.date' => 'Entry date must be a valid date.',
+        'entry_date.before_or_equal' => 'Entry date cannot be in the future.',
+        'waste_type.required' => 'Waste type is required.',
+        'waste_type.in' => 'Waste type must be vegetable, fruit, or plastic.',
+        'weight_kg.required' => 'Weight is required.',
+        'weight_kg.numeric' => 'Weight must be a number.',
+        'weight_kg.min' => 'Weight must be at least 0.01 kg.',
+        'weight_kg.max' => 'Weight cannot exceed 10,000 kg.',
+        'processing_technology.required' => 'Processing technology is required.',
+        'processing_technology.in' => 'Processing technology must be anaerobic, bsf, activated, paper, or pyrolysis.',
+        'notes.max' => 'Notes cannot exceed 1000 characters.',
+        'batch_number.required' => 'Batch number is required.',
+        'batch_number.unique' => 'This batch number already exists.',
+        'batch_number.max' => 'Batch number cannot exceed 255 characters.',
+        'input_weight_kg.required' => 'Input weight is required.',
+        'input_weight_kg.numeric' => 'Input weight must be a number.',
+        'input_weight_kg.min' => 'Input weight must be at least 0.01 kg.',
+        'input_weight_kg.max' => 'Input weight cannot exceed 50,000 kg.',
+        'input_type.required' => 'Input type is required.',
+        'input_type.max' => 'Input type cannot exceed 255 characters.',
+        'start_date.required' => 'Start date is required.',
+        'start_date.date' => 'Start date must be a valid date.',
+        'start_date.before_or_equal' => 'Start date cannot be in the future.',
+        'expected_completion_date.date' => 'Expected completion date must be a valid date.',
+        'expected_completion_date.after' => 'Expected completion date must be after start date.',
+        'actual_completion_date.date' => 'Actual completion date must be a valid date.',
+        'actual_completion_date.after' => 'Actual completion date must be after start date.',
+        'status.required' => 'Status is required.',
+        'status.in' => 'Status must be pending, processing, completed, or cancelled.',
+        'description.max' => 'Description cannot exceed 1000 characters.',
+        'output_type.required' => 'Output type is required.',
+        'output_type.max' => 'Output type cannot exceed 255 characters.',
+        'quantity.required' => 'Quantity is required.',
+        'quantity.numeric' => 'Quantity must be a number.',
+        'quantity.min' => 'Quantity must be at least 0.01.',
+        'quantity.max' => 'Quantity cannot exceed 10,000.',
+        'unit.required' => 'Unit is required.',
+        'unit.max' => 'Unit cannot exceed 50 characters.',
+        'is_expected.boolean' => 'Expected flag must be true or false.',
+        'output_date.date' => 'Output date must be a valid date.',
+        'output_date.before_or_equal' => 'Output date cannot be in the future.',
+        'quality_grade.numeric' => 'Quality grade must be a number.',
+        'quality_grade.min' => 'Quality grade must be at least 0.',
+        'quality_grade.max' => 'Quality grade cannot exceed 100.',
+        'remarks.max' => 'Remarks cannot exceed 1000 characters.',
+        'product_type.required' => 'Product type is required.',
+        'product_type.max' => 'Product type cannot exceed 255 characters.',
+        'price_per_unit.required' => 'Price per unit is required.',
+        'price_per_unit.numeric' => 'Price per unit must be a number.',
+        'price_per_unit.min' => 'Price per unit must be at least 0.01.',
+        'price_per_unit.max' => 'Price per unit cannot exceed 100,000.',
+        'sale_date.required' => 'Sale date is required.',
+        'sale_date.date' => 'Sale date must be a valid date.',
+        'sale_date.before_or_equal' => 'Sale date cannot be in the future.',
+        'customer_name.max' => 'Customer name cannot exceed 255 characters.',
+        'consumption_date.required' => 'Consumption date is required.',
+        'consumption_date.date' => 'Consumption date must be a valid date.',
+        'consumption_date.before_or_equal' => 'Consumption date cannot be in the future.',
+        'energy_source.required' => 'Energy source is required.',
+        'energy_source.in' => 'Energy source must be biogas, grid_electricity, or pyrolysis_oil.',
+        'quantity_consumed.required' => 'Quantity consumed is required.',
+        'quantity_consumed.numeric' => 'Quantity consumed must be a number.',
+        'quantity_consumed.min' => 'Quantity consumed must be at least 0.01.',
+        'quantity_consumed.max' => 'Quantity consumed cannot exceed 100,000.',
+        'used_for.required' => 'Used for field is required.',
+        'used_for.max' => 'Used for field cannot exceed 255 characters.',
+        'cost_saved.numeric' => 'Cost saved must be a number.',
+        'cost_saved.min' => 'Cost saved must be at least 0.',
+        'cost_saved.max' => 'Cost saved cannot exceed 1,000,000.',
+        'report_date.required' => 'Report date is required.',
+        'report_date.date' => 'Report date must be a valid date.',
+        'report_date.before_or_equal' => 'Report date cannot be in the future.',
+        'adjustment_type.required' => 'Adjustment type is required.',
+        'adjustment_type.in' => 'Adjustment type must be add or subtract.',
+        'reason.required' => 'Reason is required.',
+        'reason.max' => 'Reason cannot exceed 255 characters.'
+    ]
+];
