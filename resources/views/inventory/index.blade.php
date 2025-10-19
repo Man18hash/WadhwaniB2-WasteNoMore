@@ -74,8 +74,12 @@
                                 {{ $item->last_updated_date->format('M d, Y') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $item->stock_badge }}">
-                                    {{ ucfirst(str_replace('_', ' ', $item->stock_status)) }}
+                                @php
+                                    $status = $item->stock_status ?? 'in_stock';
+                                    $badge = $item->stock_badge ?? 'bg-green-100 text-green-800';
+                                @endphp
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $badge }}">
+                                    {{ ucfirst(str_replace('_', ' ', $status)) }}
                                 </span>
                             </td>
                         </tr>

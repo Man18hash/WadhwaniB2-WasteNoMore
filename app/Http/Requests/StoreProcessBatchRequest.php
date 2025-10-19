@@ -17,7 +17,7 @@ class StoreProcessBatchRequest extends FormRequest
             'batch_number' => 'required|string|max:255|unique:process_batches,batch_number',
             'input_weight_kg' => 'required|numeric|min:0.01|max:50000',
             'input_type' => 'required|string|max:255',
-            'start_date' => 'required|date|before_or_equal:today',
+            'start_date' => 'required|date|after_or_equal:today',
             'expected_completion_date' => 'nullable|date|after:start_date',
             'description' => 'nullable|string|max:1000'
         ];
@@ -37,7 +37,7 @@ class StoreProcessBatchRequest extends FormRequest
             'input_type.max' => 'Input type cannot exceed 255 characters.',
             'start_date.required' => 'Start date is required.',
             'start_date.date' => 'Start date must be a valid date.',
-            'start_date.before_or_equal' => 'Start date cannot be in the future.',
+            'start_date.after_or_equal' => 'Start date must be today or in the future.',
             'expected_completion_date.date' => 'Expected completion date must be a valid date.',
             'expected_completion_date.after' => 'Expected completion date must be after start date.',
             'description.max' => 'Description cannot exceed 1000 characters.'

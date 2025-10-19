@@ -65,8 +65,8 @@ class ValidationService
 
     public static function validateBatchDateRange($startDate, $expectedCompletionDate = null, $actualCompletionDate = null)
     {
-        if ($startDate > Carbon::today()) {
-            return ['valid' => false, 'message' => 'Start date cannot be in the future.'];
+        if ($startDate < Carbon::today()) {
+            return ['valid' => false, 'message' => 'Start date cannot be in the past.'];
         }
 
         if ($expectedCompletionDate && $expectedCompletionDate <= $startDate) {

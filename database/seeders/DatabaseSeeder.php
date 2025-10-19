@@ -21,9 +21,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        // Seed realistic waste management data
+        // Seed presentation-ready waste management data
         $this->call([
-            RealisticDataSeeder::class,
+            PresentationDataSeeder::class,
         ]);
     }
 }

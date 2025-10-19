@@ -42,8 +42,41 @@ class RealisticDataSeeder extends Seeder
 
     private function createWasteEntries(): void
     {
-        $wasteTypes = ['vegetable', 'fruit', 'plastic'];
-        $processingTechnologies = ['anaerobic', 'bsf', 'activated', 'paper', 'pyrolysis'];
+        // Define logical combinations of waste types and processing technologies
+        $wasteProcessingMap = [
+            'vegetable' => ['anaerobic', 'bsf'],
+            'fruit' => ['anaerobic', 'bsf'],
+            'plastic' => ['pyrolysis'],
+            'paper' => ['paper']
+        ];
+        
+        $wasteNotesMap = [
+            'vegetable' => [
+                'Fresh vegetable scraps from kitchen prep',
+                'Organic vegetable waste from market',
+                'Vegetable peels and trimmings',
+                'Expired vegetable produce'
+            ],
+            'fruit' => [
+                'Mixed fruit peels and cores',
+                'Overripe fruit from market',
+                'Fruit processing waste',
+                'Expired fruit items'
+            ],
+            'plastic' => [
+                'Plastic packaging materials',
+                'Plastic containers and bags',
+                'Plastic waste from packaging',
+                'Mixed plastic materials'
+            ],
+            'paper' => [
+                'Paper and cardboard packaging',
+                'Office paper waste',
+                'Cardboard boxes and packaging',
+                'Mixed paper materials'
+            ]
+        ];
+        
         $entryDates = [];
         
         // Generate dates for the past month including current week
@@ -63,12 +96,16 @@ class RealisticDataSeeder extends Seeder
             $entriesPerDay = rand(2, 5);
             
             for ($i = 0; $i < $entriesPerDay; $i++) {
+                $wasteType = array_rand($wasteProcessingMap);
+                $processingTech = $wasteProcessingMap[$wasteType][array_rand($wasteProcessingMap[$wasteType])];
+                $notes = $wasteNotesMap[$wasteType][array_rand($wasteNotesMap[$wasteType])];
+                
                 WasteEntry::create([
-                    'waste_type' => $wasteTypes[array_rand($wasteTypes)],
+                    'waste_type' => $wasteType,
                     'weight_kg' => rand(50, 500),
-                    'processing_technology' => $processingTechnologies[array_rand($processingTechnologies)],
+                    'processing_technology' => $processingTech,
                     'entry_date' => $date->copy()->addHours(rand(8, 18)),
-                    'notes' => $this->getWasteDescription(),
+                    'notes' => $notes,
                 ]);
             }
         }
@@ -255,6 +292,7 @@ class RealisticDataSeeder extends Seeder
                 'vegetable_waste_kg' => rand(800, 2000),
                 'fruit_waste_kg' => rand(600, 1500),
                 'plastic_waste_kg' => rand(400, 1000),
+                'paper_waste_kg' => rand(200, 500),
                 'biogas_generated_m3' => rand(500, 1200),
                 'digestate_produced_kg' => rand(1500, 3000),
                 'larvae_produced_kg' => rand(200, 600),

@@ -14,8 +14,17 @@ class InventoryController extends Controller
     {
         $inventory = OutputInventory::orderBy('product_type')->get();
         
-        // Calculate low stock items
-        $lowStockItems = $inventory->where('current_stock', '<', 100);
+        // Ensure stock status and badge are calculated for each item
+        $inventory->each(function ($item) {
+            // Force calculation of accessor attributes
+            $item->stock_status;
+            $item->stock_badge;
+        });
+        
+        // Calculate low stock items (critical and low stock)
+        $lowStockItems = $inventory->filter(function ($item) {
+            return $item->current_stock < 100;
+        });
         
         return view('inventory.index', compact('inventory', 'lowStockItems'));
     }

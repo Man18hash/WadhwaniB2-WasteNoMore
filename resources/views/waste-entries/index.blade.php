@@ -34,6 +34,7 @@
                     <option value="vegetable" {{ request('waste_type') == 'vegetable' ? 'selected' : '' }}>Vegetable</option>
                     <option value="fruit" {{ request('waste_type') == 'fruit' ? 'selected' : '' }}>Fruit</option>
                     <option value="plastic" {{ request('waste_type') == 'plastic' ? 'selected' : '' }}>Plastic</option>
+                    <option value="paper" {{ request('waste_type') == 'paper' ? 'selected' : '' }}>Paper</option>
                 </select>
             </div>
             
@@ -89,10 +90,11 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    {{ $entry->waste_type == 'vegetable' ? 'bg-green-100 text-green-800' : '' }}
-                                    {{ $entry->waste_type == 'fruit' ? 'bg-yellow-100 text-yellow-800' : '' }}
-                                    {{ $entry->waste_type == 'plastic' ? 'bg-red-100 text-red-800' : '' }}">
-                                    <i class="fas fa-{{ $entry->waste_type == 'vegetable' ? 'carrot' : ($entry->waste_type == 'fruit' ? 'apple-alt' : 'recycle') }} mr-1"></i>
+                                    {{ $entry->waste_type == 'vegetable' ? 'bg-green-100 text-green-800' : 
+                                       ($entry->waste_type == 'fruit' ? 'bg-yellow-100 text-yellow-800' : 
+                                        ($entry->waste_type == 'plastic' ? 'bg-red-100 text-red-800' : 
+                                         ($entry->waste_type == 'paper' ? 'bg-gray-100 text-gray-800' : 'bg-blue-100 text-blue-800'))) }}">
+                                    <i class="fas fa-{{ $entry->waste_type == 'vegetable' ? 'carrot' : ($entry->waste_type == 'fruit' ? 'apple-alt' : ($entry->waste_type == 'paper' ? 'file-alt' : 'recycle')) }} mr-1"></i>
                                     {{ ucfirst($entry->waste_type) }}
                                 </span>
                             </td>
@@ -106,7 +108,11 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                                {{ $entry->notes ?? '-' }}
+                                @if($entry->notes && trim($entry->notes) !== '')
+                                    {{ $entry->notes }}
+                                @else
+                                    <span class="text-gray-500 italic">No notes</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex space-x-2">

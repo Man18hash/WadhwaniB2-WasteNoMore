@@ -29,12 +29,21 @@ class OutputInventory extends Model
         'last_updated_date' => 'date'
     ];
 
+    protected $appends = [
+        'stock_status',
+        'stock_badge'
+    ];
+
     public function getStockStatusAttribute()
     {
         if ($this->current_stock <= 0) {
             return 'out_of_stock';
+        } elseif ($this->current_stock < 50) {
+            return 'critical_stock';
         } elseif ($this->current_stock < 100) {
             return 'low_stock';
+        } elseif ($this->current_stock < 200) {
+            return 'moderate_stock';
         }
         return 'in_stock';
     }
@@ -43,7 +52,9 @@ class OutputInventory extends Model
     {
         $badges = [
             'out_of_stock' => 'bg-red-100 text-red-800',
+            'critical_stock' => 'bg-red-100 text-red-800',
             'low_stock' => 'bg-yellow-100 text-yellow-800',
+            'moderate_stock' => 'bg-blue-100 text-blue-800',
             'in_stock' => 'bg-green-100 text-green-800'
         ];
 

@@ -39,8 +39,9 @@
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                         {{ $wasteEntry->waste_type == 'vegetable' ? 'bg-green-100 text-green-800' : '' }}
                         {{ $wasteEntry->waste_type == 'fruit' ? 'bg-yellow-100 text-yellow-800' : '' }}
-                        {{ $wasteEntry->waste_type == 'plastic' ? 'bg-red-100 text-red-800' : '' }}">
-                        <i class="fas fa-{{ $wasteEntry->waste_type == 'vegetable' ? 'carrot' : ($wasteEntry->waste_type == 'fruit' ? 'apple-alt' : 'recycle') }} mr-1"></i>
+                        {{ $wasteEntry->waste_type == 'plastic' ? 'bg-red-100 text-red-800' : '' }}
+                        {{ $wasteEntry->waste_type == 'paper' ? 'bg-gray-100 text-gray-800' : '' }}">
+                        <i class="fas fa-{{ $wasteEntry->waste_type == 'vegetable' ? 'carrot' : ($wasteEntry->waste_type == 'fruit' ? 'apple-alt' : ($wasteEntry->waste_type == 'paper' ? 'file-alt' : 'recycle')) }} mr-1"></i>
                         {{ ucfirst($wasteEntry->waste_type) }}
                     </span>
                 </div>
@@ -73,14 +74,16 @@
                     <span class="text-sm text-gray-900">{{ $wasteEntry->updated_at->format('M d, Y H:i') }}</span>
                 </div>
                 
-                @if($wasteEntry->notes)
-                    <div class="py-2">
-                        <span class="text-sm font-medium text-gray-600 block mb-2">Notes:</span>
-                        <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-900">
+                <div class="py-2">
+                    <span class="text-sm font-medium text-gray-600 block mb-2">Notes:</span>
+                    <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-900">
+                        @if($wasteEntry->notes && trim($wasteEntry->notes) !== '')
                             {{ $wasteEntry->notes }}
-                        </div>
+                        @else
+                            <span class="text-gray-500 italic">No notes provided</span>
+                        @endif
                     </div>
-                @endif
+                </div>
             </div>
         </div>
         

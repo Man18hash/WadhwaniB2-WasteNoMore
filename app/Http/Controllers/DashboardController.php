@@ -91,6 +91,9 @@ class DashboardController extends Controller
                 ->sum('weight_kg') ?: 0,
             'plastic' => WasteEntry::where('waste_type', 'plastic')
                 ->where('entry_date', '>=', $currentWeek)
+                ->sum('weight_kg') ?: 0,
+            'paper' => WasteEntry::where('waste_type', 'paper')
+                ->where('entry_date', '>=', $currentWeek)
                 ->sum('weight_kg') ?: 0
         ];
         
@@ -104,6 +107,9 @@ class DashboardController extends Controller
                     ->where('entry_date', '>=', Carbon::now()->subDays(7))
                     ->sum('weight_kg') ?: 0,
                 'plastic' => WasteEntry::where('waste_type', 'plastic')
+                    ->where('entry_date', '>=', Carbon::now()->subDays(7))
+                    ->sum('weight_kg') ?: 0,
+                'paper' => WasteEntry::where('waste_type', 'paper')
                     ->where('entry_date', '>=', Carbon::now()->subDays(7))
                     ->sum('weight_kg') ?: 0
             ];
@@ -226,6 +232,7 @@ class DashboardController extends Controller
         $stats->vegetable_waste_kg = $wasteEntries->where('waste_type', 'vegetable')->sum('weight_kg');
         $stats->fruit_waste_kg = $wasteEntries->where('waste_type', 'fruit')->sum('weight_kg');
         $stats->plastic_waste_kg = $wasteEntries->where('waste_type', 'plastic')->sum('weight_kg');
+        $stats->paper_waste_kg = $wasteEntries->where('waste_type', 'paper')->sum('weight_kg');
         
         // Calculate outputs from completed batches
         $completedBatches = ProcessBatch::where('status', 'completed')

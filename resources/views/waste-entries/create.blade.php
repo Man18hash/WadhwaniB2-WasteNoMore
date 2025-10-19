@@ -28,6 +28,7 @@
                         <option value="vegetable" {{ old('waste_type') == 'vegetable' ? 'selected' : '' }}>Vegetable</option>
                         <option value="fruit" {{ old('waste_type') == 'fruit' ? 'selected' : '' }}>Fruit</option>
                         <option value="plastic" {{ old('waste_type') == 'plastic' ? 'selected' : '' }}>Plastic</option>
+                        <option value="paper" {{ old('waste_type') == 'paper' ? 'selected' : '' }}>Paper</option>
                     </select>
                     @error('waste_type')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -67,10 +68,11 @@
                 <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
                 <textarea name="notes" id="notes" rows="4" 
                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 @error('notes') border-red-500 @enderror" 
-                          placeholder="Additional notes about this waste entry...">{{ old('notes') }}</textarea>
+                          placeholder="Additional notes about this waste entry... (optional)">{{ old('notes') }}</textarea>
                 @error('notes')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
+                <p class="mt-1 text-xs text-gray-500">Optional: Add any additional information about this waste entry</p>
             </div>
             
             <div class="flex justify-end space-x-3">

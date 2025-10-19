@@ -31,7 +31,7 @@ class WasteEntryController extends Controller
             $query->where('entry_date', '<=', $request->date_to);
         }
         
-        $wasteEntries = $query->orderBy('entry_date', 'desc')->paginate(15);
+        $wasteEntries = $query->orderBy('created_at', 'desc')->paginate(15);
         
         return view('waste-entries.index', compact('wasteEntries'));
     }
@@ -43,7 +43,14 @@ class WasteEntryController extends Controller
     
     public function store(StoreWasteEntryRequest $request)
     {
-        WasteEntry::create($request->validated());
+        $validatedData = $request->validated();
+        
+        // Clean up notes field - remove empty strings and set to null
+        if (isset($validatedData['notes']) && trim($validatedData['notes']) === '') {
+            $validatedData['notes'] = null;
+        }
+        
+        $wasteEntry = WasteEntry::create($validatedData);
         
         return redirect()->route('waste-entries.index')
             ->with('success', 'Waste entry created successfully!');
@@ -61,7 +68,14 @@ class WasteEntryController extends Controller
     
     public function update(UpdateWasteEntryRequest $request, WasteEntry $wasteEntry)
     {
-        $wasteEntry->update($request->validated());
+        $validatedData = $request->validated();
+        
+        // Clean up notes field - remove empty strings and set to null
+        if (isset($validatedData['notes']) && trim($validatedData['notes']) === '') {
+            $validatedData['notes'] = null;
+        }
+        
+        $wasteEntry->update($validatedData);
         
         return redirect()->route('waste-entries.index')
             ->with('success', 'Waste entry updated successfully!');

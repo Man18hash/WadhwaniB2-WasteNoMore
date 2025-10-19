@@ -83,3 +83,8 @@ Route::get('/ai-analytics/batch-scheduling', [AIAnalyticsController::class, 'bat
 Route::get('/ai-analytics/yield-prediction', [AIAnalyticsController::class, 'yieldPrediction'])->name('ai-analytics.yield-prediction');
 Route::get('/ai-analytics/quality-assessment', [AIAnalyticsController::class, 'qualityAssessment'])->name('ai-analytics.quality-assessment');
 Route::post('/ai-analytics/quality-assessment/analyze', [AIAnalyticsController::class, 'analyzeImage'])->name('ai-analytics.analyze-image');
+
+// AI Batch Approval Actions
+Route::post('/ai-analytics/batch/{batch}/approve', [AIAnalyticsController::class, 'approveBatch'])->name('ai-analytics.batch.approve');
+Route::post('/ai-analytics/batch/{batch}/reject', [AIAnalyticsController::class, 'rejectBatch'])->name('ai-analytics.batch.reject');
+Route::post('/ai-analytics/batch/{batch}/schedule-later', [AIAnalyticsController::class, 'scheduleBatchLater'])->name('ai-analytics.batch.schedule-later');

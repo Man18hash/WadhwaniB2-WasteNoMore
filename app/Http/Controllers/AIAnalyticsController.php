@@ -119,15 +119,35 @@ class AIAnalyticsController extends Controller
         $recommendations = [];
         
         foreach ($pendingBatches as $batch) {
+            // Ensure recommended time is always in the future (at least 1 hour from now)
+            $recommendedTime = Carbon::now()->addHours(rand(1, 24));
+            $inputStartDate = $batch->start_date ?? Carbon::now();
+            $inputEndDate = $batch->expected_completion_date ?? $inputStartDate->copy()->addDays(7);
+            
+            // Use scheduled start date if batch has been scheduled, otherwise use AI recommended time
+            $countdownTime = $batch->start_date ? Carbon::parse($batch->start_date) : $recommendedTime;
+            $isScheduled = $batch->start_date ? true : false;
+            
             $recommendations[] = [
                 'batch_id' => $batch->id,
                 'batch_number' => $batch->batch_number,
-                'recommended_start_time' => Carbon::now()->addHours(rand(1, 6))->format('Y-m-d H:i'),
+                'process_type' => $batch->process_type,
+                'input_type' => $batch->input_type,
+                'input_weight_kg' => $batch->input_weight_kg,
+                'input_start_date' => $inputStartDate,
+                'input_end_date' => $inputEndDate,
+                'recommended_start_time' => $recommendedTime,
+                'countdown_time' => $countdownTime,
+                'time_until_recommended' => $countdownTime->diffForHumans(),
+                'time_until_recommended_minutes' => Carbon::now()->diffInMinutes($countdownTime, false),
+                'is_scheduled' => $isScheduled,
                 'priority_score' => rand(70, 95),
                 'reason' => 'Optimal conditions detected for ' . $batch->process_type,
                 'expected_efficiency' => rand(80, 95) . '%',
                 'weather_factor' => 'Favorable',
-                'demand_factor' => 'High'
+                'demand_factor' => 'High',
+                'processing_duration_hours' => rand(24, 168), // 1-7 days
+                'batch' => $batch // Include the full batch object for additional data
             ];
         }
         
@@ -425,5 +445,107 @@ class AIAnalyticsController extends Controller
             'recommended_technology' => $technologies,
             'expected_processing_time' => $processingTimes
         ];
+    }
+
+    /**
+     * Approve a batch for processing
+     */
+    public function approveBatch(Request $request, $batchId)
+    {
+        $batch = ProcessBatch::findOrFail($batchId);
+        
+        // Update batch status to processing
+        $batch->update([
+            'status' => 'processing',
+            'start_date' => Carbon::now(),
+            'description' => $batch->description . ' [AI Approved: ' . Carbon::now()->format('Y-m-d H:i') . ']'
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Batch approved and processing started successfully!',
+            'batch_status' => $batch->status
+        ]);
+    }
+
+    /**
+     * Reject a batch
+     */
+    public function rejectBatch(Request $request, $batchId)
+    {
+        $batch = ProcessBatch::findOrFail($batchId);
+        
+        // Update batch status to cancelled
+        $batch->update([
+            'status' => 'cancelled',
+            'description' => $batch->description . ' [AI Rejected: ' . Carbon::now()->format('Y-m-d H:i') . ']'
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Batch rejected successfully!',
+            'batch_status' => $batch->status
+        ]);
+    }
+
+    /**
+     * Schedule a batch for later processing
+     */
+    public function scheduleBatchLater(Request $request, $batchId)
+    {
+        $request->validate([
+            'scheduled_date' => 'required|date|after_or_equal:today'
+        ], [
+            'scheduled_date.required' => 'Scheduled date is required.',
+            'scheduled_date.date' => 'Scheduled date must be a valid date.',
+            'scheduled_date.after_or_equal' => 'Scheduled date must be today or in the future.'
+        ]);
+        
+        $batch = ProcessBatch::findOrFail($batchId);
+        
+        // Calculate processing duration based on process type
+        $processingDurationHours = $this->getProcessingDurationHours($batch->process_type);
+        
+        // Calculate expected completion date
+        $newStartDate = Carbon::parse($request->scheduled_date);
+        $expectedCompletionDate = $newStartDate->copy()->addHours($processingDurationHours);
+        
+        // Debug logging
+        \Log::info('Scheduling batch', [
+            'batch_id' => $batchId,
+            'requested_date' => $request->scheduled_date,
+            'parsed_date' => $newStartDate->toDateTimeString(),
+            'completion_date' => $expectedCompletionDate->toDateTimeString(),
+            'processing_hours' => $processingDurationHours
+        ]);
+        
+        // Update batch with new scheduled date and calculated completion date
+        $batch->update([
+            'start_date' => $newStartDate,
+            'expected_completion_date' => $expectedCompletionDate,
+            'description' => $batch->description . ' [Rescheduled: Start ' . $newStartDate->format('Y-m-d H:i') . ', Expected Completion ' . $expectedCompletionDate->format('Y-m-d H:i') . ']'
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Batch scheduled for later processing!',
+            'scheduled_date' => $newStartDate->format('Y-m-d H:i'),
+            'expected_completion_date' => $expectedCompletionDate->format('Y-m-d H:i'),
+            'processing_duration_hours' => $processingDurationHours
+        ]);
+    }
+    
+    private function getProcessingDurationHours($processType)
+    {
+        // Define processing durations for different process types (in hours)
+        $durations = [
+            'anaerobic_digestion' => 168, // 7 days
+            'bsf_larvae' => 336, // 14 days
+            'activated_carbon' => 72, // 3 days
+            'paper_packaging' => 48, // 2 days
+            'pyrolysis' => 24 // 1 day
+        ];
+        
+        return $durations[$processType] ?? 72; // Default to 3 days if not found
     }
 }
